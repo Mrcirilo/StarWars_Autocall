@@ -1,0 +1,97 @@
+feature_name
+autocall_barrier_pct
+protection_barrier_pct
+no_call_period_months
+quoted_implied_vol
+notional_credits
+observation_frequency_months
+basket_size
+log_notional_credits
+requested_year
+requested_month_sin
+requested_month_cos
+requested_dayofweek
+n_underlyings
+n_market_matches
+realized_vol_min
+realized_vol_max
+realized_vol_mean
+realized_vol_std
+structural_base_vol_min
+structural_base_vol_max
+structural_base_vol_mean
+structural_base_vol_std
+market_lag_days_max
+realized_vol_range
+structural_base_vol_range
+realized_minus_structural_vol
+market_match_rate
+has_underlying_BSKR
+has_underlying_CLNE
+has_underlying_CORL
+has_underlying_DRC
+has_underlying_HTTX
+has_underlying_JEDI
+has_underlying_KYBR
+has_underlying_MNDO
+has_underlying_NABO
+has_underlying_POBK
+has_underlying_REBL
+has_underlying_SITH
+has_underlying_TECH
+has_underlying_WOOK
+product_type_Death Star Phoenix Note
+product_type_Holocron Reverse Convertible
+product_type_Kessel Run Snowball
+product_type_Mandalorian Twin-Win
+product_type_Sith Eternal Snowball
+product_type_Wretched Hive Digital
+basket_type_single
+basket_type_worst_of
+counterparty_Alderaan Wealth Partners
+counterparty_Banco de Coruscant
+counterparty_Chandrila Sovereign Fund
+counterparty_Corellian Capital
+counterparty_First Order Financial
+counterparty_Jabba Asset Management
+counterparty_Kamino Cloning Trust
+counterparty_Nal Hutta Traders
+trader_id_TRD-001
+trader_id_TRD-002
+trader_id_TRD-003
+trader_id_TRD-004
+trader_id_TRD-005
+trader_id_TRD-006
+trader_id_TRD-007
+trader_id_TRD-008
+trader_id_TRD-009
+trader_id_TRD-010
+trader_id_TRD-011
+trader_id_TRD-012
+trader_id_TRD-013
+trader_id_TRD-014
+trader_id_TRD-015
+trader_id_TRD-016
+trader_id_TRD-017
+trader_id_TRD-018
+trader_id_TRD-019
+trader_id_TRD-020
+trader_id_TRD-021
+trader_id_TRD-022
+trader_id_TRD-023
+trader_id_TRD-024
+trader_id_TRD-025
+trader_id_TRD-026
+trader_id_TRD-027
+trader_id_TRD-028
+trader_id_TRD-029
+trader_id_TRD-030
+trader_id_TRD-031
+trader_id_TRD-032
+trader_id_TRD-033
+trader_id_TRD-034
+trader_id_TRD-035
+trader_id_TRD-036
+trader_id_TRD-037
+trader_id_TRD-038
+trader_id_TRD-039
