@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#090909" />
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <title>Imperial Quant — RFQ Estimate</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="masthead">
+        <div class="eyebrow">IMPERIAL QUANTITATIVE DIVISION // MODEL V1</div>
+        <div class="masthead-row">
+          <h1>RFQ DURATION<br /><span>ESTIMATE</span></h1>
+          <div class="status"><i></i> SYSTEM ONLINE</div>
+        </div>
+      </header>
+
+      <section class="intro">
+        <p>Introduce los términos conocidos al cotizar. El sistema estima la duración media simulada del autocallable.</p>
+        <p class="muted" id="market-coverage">Cargando cobertura de mercado…</p>
+      </section>
+
+      <form id="prediction-form" class="console" novalidate>
+        <section class="form-section">
+          <div class="section-label">01 / PRODUCTO</div>
+          <div class="fields four">
+            <label>Tipo de producto<select name="product_type" id="product_type" required></select></label>
+            <label>Tipo de cesta<select name="basket_type" id="basket_type"><option value="worst_of">Worst of</option><option value="single">Single</option></select></label>
+            <label>Frecuencia de observación<select name="observation_frequency" id="observation_frequency"></select></label>
+            <label>Fecha de solicitud<input name="requested_date" id="requested_date" type="date" required /></label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <div class="section-label">02 / SUBYACENTES</div>
+          <div class="underlyings" id="underlyings" aria-label="Subyacentes disponibles"></div>
+          <p class="field-help">Selecciona uno para <em>single</em> o dos o más para <em>worst of</em>.</p>
+        </section>
+
+        <section class="form-section">
+          <div class="section-label">03 / TÉRMINOS DE LA RFQ</div>
+          <div class="fields four">
+            <label>Barrera autocall<input name="autocall_barrier_pct" type="number" step="0.0001" min="0.0001" value="1.0000" required /></label>
+            <label>Barrera de protección<input name="protection_barrier_pct" type="number" step="0.0001" min="0.0001" value="0.6000" required /></label>
+            <label>Periodo no-call (meses)<input name="no_call_period_months" type="number" min="0" step="1" value="3" required /></label>
+            <label>Volatilidad implícita cotizada<input name="quoted_implied_vol" type="number" step="0.0001" min="0.0001" value="0.2500" required /></label>
+            <label>Notional (CR)<input name="notional_credits" type="number" step="1" min="1" value="250000" required /></label>
+            <label>Contraparte<select name="counterparty" id="counterparty" required></select></label>
+            <label>Trader<select name="trader_id" id="trader_id" required></select></label>
+          </div>
+        </section>
+
+        <div class="actions">
+          <button id="submit-button" type="submit">CALCULAR ESTIMACIÓN <span>→</span></button>
+          <p id="form-error" role="alert" class="form-error"></p>
+        </div>
+      </form>
+
+      <section id="result" class="result hidden" aria-live="polite">
+        <div class="section-label">RESULTADO / MODELO CATBOOST</div>
+        <div class="result-grid">
+          <div><span class="result-number" id="prediction-value">—</span><span class="unit">meses estimados</span></div>
+          <dl>
+            <div><dt>Variables</dt><dd id="feature-count">—</dd></div>
+            <div><dt>Retraso máximo de mercado</dt><dd id="market-lag">—</dd></div>
+            <div><dt>Modelo</dt><dd id="model-name">—</dd></div>
+          </dl>
+        </div>
+        <p class="muted">Estimación predictiva, no garantía ni relación causal.</p>
+      </section>
+
+      <footer><span>STARWARS AUTOCALLS</span><a href="/docs" target="_blank" rel="noreferrer">API DOCUMENTATION ↗</a></footer>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

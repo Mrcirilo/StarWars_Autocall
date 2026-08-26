@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.scripts]
-starwars-autocalls = "starwars_autocalls:main"
+starwars-autocalls = "starwars_autocalls.api:main"
 
 [build-system]
 requires = ["uv_build>=0.12.5,<0.13.0"]
