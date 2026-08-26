@@ -1,0 +1,4 @@
+model,MAE_months,RMSE_months
+CatBoost principal,11.26927845021255,15.365541540592604
+GAM explicativo,12.595831723652385,16.034746790137316
+Baseline estacional (mes × día semana),18.134772117962466,22.319727795396382

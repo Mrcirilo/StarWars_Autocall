@@ -1,0 +1,97 @@
+feature,mean_abs_shap_months
+observation_frequency_months,3.441479820940453
+autocall_barrier_pct,2.858312482786388
+protection_barrier_pct,2.3548782632019005
+has_underlying_REBL,2.0433303083913357
+realized_vol_min,1.6557905281530725
+product_type_Wretched Hive Digital,1.6441177461060352
+has_underlying_HTTX,1.1736578518617522
+n_market_matches,1.0911067861293187
+structural_base_vol_max,0.9845554104457048
+n_underlyings,0.9804867031674082
+structural_base_vol_std,0.9317447858857332
+realized_vol_range,0.9198092246169444
+realized_vol_max,0.8122602288595862
+no_call_period_months,0.7466851628077695
+basket_type_single,0.7425682626089
+structural_base_vol_range,0.7181526911533465
+basket_size,0.6836484221806552
+structural_base_vol_min,0.6567007685960347
+basket_type_worst_of,0.5705373435185047
+realized_minus_structural_vol,0.5698752813640031
+structural_base_vol_mean,0.5513099139599147
+realized_vol_std,0.5054401416389827
+product_type_Death Star Phoenix Note,0.49070113817479977
+requested_month_cos,0.48752869275382354
+requested_year,0.4678892788608854
+requested_month_sin,0.4477192410270006
+quoted_implied_vol,0.3954408865867825
+realized_vol_mean,0.3128509363012448
+requested_dayofweek,0.20390488142619917
+product_type_Kessel Run Snowball,0.18817576130413521
+has_underlying_CORL,0.17691786689682687
+notional_credits,0.1562195122117827
+has_underlying_KYBR,0.154765955425912
+has_underlying_TECH,0.1497022757932754
+log_notional_credits,0.1256695925499906
+counterparty_Banco de Coruscant,0.12206245459307967
+has_underlying_MNDO,0.09553554316486963
+market_lag_days_max,0.08736292425023581
+counterparty_Nal Hutta Traders,0.08317941385558716
+has_underlying_JEDI,0.08056097581474135
+has_underlying_WOOK,0.07935761061642232
+has_underlying_SITH,0.07450590271288372
+trader_id_TRD-008,0.07322621358608834
+counterparty_Chandrila Sovereign Fund,0.07165156323584464
+trader_id_TRD-014,0.07112340085160411
+has_underlying_POBK,0.06345259622778879
+counterparty_First Order Financial,0.062169265729705186
+has_underlying_CLNE,0.057619395012273526
+trader_id_TRD-002,0.05273105055484277
+counterparty_Jabba Asset Management,0.051616204036994386
+counterparty_Corellian Capital,0.04652136388773553
+has_underlying_NABO,0.03885805863061007
+has_underlying_BSKR,0.038584262813608106
+counterparty_Alderaan Wealth Partners,0.037396528844559414
+trader_id_TRD-038,0.03625749048708487
+has_underlying_DRC,0.03582765820539812
+product_type_Holocron Reverse Convertible,0.0338740970516872
+counterparty_Kamino Cloning Trust,0.0329509970795656
+trader_id_TRD-010,0.02997864296496749
+product_type_Mandalorian Twin-Win,0.027575834018424093
+trader_id_TRD-028,0.02653439056356338
+trader_id_TRD-030,0.0260690441598254
+trader_id_TRD-035,0.024904310735925906
+trader_id_TRD-021,0.02302456426406169
+trader_id_TRD-007,0.022283398653941147
+trader_id_TRD-012,0.022139708586023137
+trader_id_TRD-032,0.02145685788941196
+trader_id_TRD-020,0.02071885147474236
+trader_id_TRD-005,0.020119146408789916
+trader_id_TRD-031,0.01885800165526487
+trader_id_TRD-001,0.017062718280116042
+product_type_Sith Eternal Snowball,0.01674926817448548
+trader_id_TRD-037,0.01671007341783618
+trader_id_TRD-034,0.016107984262562748
+trader_id_TRD-024,0.015984605129939048
+trader_id_TRD-004,0.014505067691344143
+trader_id_TRD-022,0.014385911497933022
+trader_id_TRD-036,0.014051784980009597
+trader_id_TRD-027,0.013235033178793473
+trader_id_TRD-015,0.012016400000539796
+trader_id_TRD-039,0.011068590748237482
+trader_id_TRD-033,0.01051848694189371
+trader_id_TRD-009,0.010254918358904063
+trader_id_TRD-003,0.009937181410332277
+trader_id_TRD-013,0.009611487424824138
+trader_id_TRD-018,0.009447502758942907
+trader_id_TRD-029,0.00912093743639536
+trader_id_TRD-006,0.008279083503184017
+trader_id_TRD-026,0.007142896277450003
+trader_id_TRD-023,0.006930218544341834
+trader_id_TRD-019,0.0060960782600092515
+trader_id_TRD-011,0.005840811999634498
+trader_id_TRD-017,0.005770813459193335
+trader_id_TRD-025,0.005209824650741924
+trader_id_TRD-016,0.002514712184375962
+market_match_rate,0.0
