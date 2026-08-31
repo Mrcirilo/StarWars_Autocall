@@ -53,14 +53,22 @@ function formPayload() {
     counterparty: values.get('counterparty'),
     trader_id: values.get('trader_id'),
     requested_date: values.get('requested_date'),
+    nominal_maturity_months: number('nominal_maturity_months'),
   };
 }
 
 function showResult(result) {
+  const band = result.predicted_p10_months === null || result.predicted_p90_months === null
+    ? 'no disponible'
+    : `${result.predicted_p10_months.toFixed(1)} – ${result.predicted_p90_months.toFixed(1)} meses`;
   document.querySelector('#prediction-value').textContent = result.predicted_avg_duration_months.toFixed(1);
+  document.querySelector('#prediction-band').textContent = band;
+  document.querySelector('#prediction-ratio').textContent =
+    `${(result.predicted_duration_ratio * 100).toFixed(0)}% de ${result.nominal_maturity_months} meses`;
   document.querySelector('#feature-count').textContent = result.feature_count;
   document.querySelector('#market-lag').textContent = `${result.market_lag_days_max} días`;
   document.querySelector('#model-name').textContent = result.model_name;
+  document.querySelector('#prediction-warnings').textContent = (result.warnings || []).join(' ');
   document.querySelector('#result').classList.remove('hidden');
 }
 

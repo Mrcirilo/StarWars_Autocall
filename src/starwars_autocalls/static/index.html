@@ -43,6 +43,7 @@
         <section class="form-section">
           <div class="section-label">03 / TÉRMINOS DE LA RFQ</div>
           <div class="fields four">
+            <label>Plazo del producto (meses)<input name="nominal_maturity_months" id="nominal_maturity_months" type="number" step="1" min="1" value="60" required /></label>
             <label>Barrera autocall<input name="autocall_barrier_pct" type="number" step="0.0001" min="0.0001" value="1.0000" required /></label>
             <label>Barrera de protección<input name="protection_barrier_pct" type="number" step="0.0001" min="0.0001" value="0.6000" required /></label>
             <label>Periodo no-call (meses)<input name="no_call_period_months" type="number" min="0" step="1" value="3" required /></label>
@@ -64,11 +65,14 @@
         <div class="result-grid">
           <div><span class="result-number" id="prediction-value">—</span><span class="unit">meses estimados</span></div>
           <dl>
+            <div><dt>Rango probable (P10–P90)</dt><dd id="prediction-band">—</dd></div>
+            <div><dt>Fracción del plazo</dt><dd id="prediction-ratio">—</dd></div>
             <div><dt>Variables</dt><dd id="feature-count">—</dd></div>
             <div><dt>Retraso máximo de mercado</dt><dd id="market-lag">—</dd></div>
             <div><dt>Modelo</dt><dd id="model-name">—</dd></div>
           </dl>
         </div>
+        <p id="prediction-warnings" class="muted"></p>
         <p class="muted">Estimación predictiva, no garantía ni relación causal.</p>
       </section>
 

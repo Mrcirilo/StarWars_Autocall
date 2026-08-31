@@ -1,5 +1,10 @@
 # Experimento: tendencia reciente de volatilidad
 
+> **Nota.** Este experimento se ejecutó con el contrato anterior: 96 variables, sin el plazo del
+> producto y prediciendo los meses directamente. La conclusión (no promocionar la variable) sigue
+> en pie, pero las cifras de MAE no son comparables con las de `models/README.md`. Habría que
+> repetirlo sobre el contrato actual antes de darlo por cerrado.
+
 ## Variable probada
 
 `realized_vol_trend_21d_mean` es, para cada subyacente, la última

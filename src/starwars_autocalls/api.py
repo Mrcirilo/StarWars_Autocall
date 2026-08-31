@@ -24,6 +24,11 @@ MODEL_DIR = PROJECT_ROOT / "models" / "catboost"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 BUILD_TAG = "fenetre-glissante-v2"
 
+# Categorical features are one-hot encoded; everything else the API must build by hand.
+DUMMY_PREFIXES = ("product_type_", "basket_type_", "counterparty_", "trader_id_", "has_underlying_")
+# Beyond this gap the market snapshot is older than anything seen in training.
+STALE_MARKET_DAYS = 30
+
 FREQUENCY_TO_MONTHS = {
     "1d": 1 / 30.44,
     "1m": 1,
@@ -67,14 +72,28 @@ class PredictionRequest(BaseModel):
     counterparty: str
     trader_id: str
     requested_date: date
+    # Plazo pactado del producto. Es un termino de la RFQ, igual que la barrera:
+    # el cliente pide precio para un plazo concreto.
+    nominal_maturity_months: float = Field(gt=0)
 
 
 class PredictionResponse(BaseModel):
     predicted_avg_duration_months: float
+    predicted_duration_ratio: float
+    predicted_p10_months: float | None
+    predicted_p90_months: float | None
+    nominal_maturity_months: float
     requested_date: date
     model_name: str
     feature_count: int
     market_lag_days_max: int
+    warnings: list[str]
+
+
+def _load_model(path: Path) -> CatBoostRegressor:
+    model = CatBoostRegressor()
+    model.load_model(str(path))
+    return model
 
 
 @dataclass
@@ -83,6 +102,10 @@ class PredictionService:
     model: CatBoostRegressor
     reference: pd.DataFrame
     volatility_by_underlying: dict[str, pd.DataFrame]
+    ratio_cap: float
+    maturity_range: tuple[float, float]
+    model_p10: CatBoostRegressor | None
+    model_p90: CatBoostRegressor | None
 
     @classmethod
     def load(cls) -> "PredictionService":
@@ -96,19 +119,36 @@ class PredictionService:
                 raise RuntimeError(f"Required API file is missing: {path}")
 
         contract = json.loads(contract_path.read_text(encoding="utf-8"))
-        model = CatBoostRegressor()
-        model.load_model(str(model_path))
+        if contract.get("target_parametrization") != "duration_ratio":
+            raise RuntimeError(
+                "This API expects a model trained on the duration ratio. "
+                "Re-run notebooks/Models.ipynb to regenerate the artifacts."
+            )
+
         reference = pd.read_csv(reference_path).set_index("underlying", verify_integrity=True)
         volatility = pd.read_csv(volatility_path, parse_dates=["date"]).sort_values(["underlying", "date"])
         volatility_by_underlying = {
             underlying: group.reset_index(drop=True)
             for underlying, group in volatility.groupby("underlying", sort=False)
         }
+
+        # Las bandas de incertidumbre son opcionales: si no estan, la API sigue sirviendo.
+        quantiles = contract.get("quantile_models", {})
+        quantile_models = {}
+        for key in ("p10", "p90"):
+            path = MODEL_DIR / quantiles[key] if key in quantiles else None
+            quantile_models[key] = _load_model(path) if path is not None and path.exists() else None
+
+        low, high = contract.get("maturity_range_months", [0.0, float("inf")])
         return cls(
             feature_columns=contract["feature_columns"],
-            model=model,
+            model=_load_model(model_path),
             reference=reference,
             volatility_by_underlying=volatility_by_underlying,
+            ratio_cap=float(contract["ratio_cap"]),
+            maturity_range=(float(low), float(high)),
+            model_p10=quantile_models["p10"],
+            model_p90=quantile_models["p90"],
         )
 
     def _require_known_category(self, prefix: str, value: str) -> None:
@@ -130,6 +170,8 @@ class PredictionService:
             raise FeatureConstructionError("basket_type 'single' requires exactly one underlying")
         if request.basket_type == "worst_of" and len(underlyings) < 2:
             raise FeatureConstructionError("basket_type 'worst_of' requires at least two underlyings")
+        if request.no_call_period_months > request.nominal_maturity_months:
+            raise FeatureConstructionError("no_call_period_months cannot exceed nominal_maturity_months")
 
         self._require_known_category("product_type_", request.product_type)
         self._require_known_category("basket_type_", request.basket_type)
@@ -160,42 +202,49 @@ class PredictionService:
 
         realized_min, realized_max = min(realized_volumes), max(realized_volumes)
         structural_min, structural_max = min(structural_volumes), max(structural_volumes)
+        known = {
+            "nominal_maturity_months": request.nominal_maturity_months,
+            "autocall_barrier_pct": request.autocall_barrier_pct,
+            "protection_barrier_pct": request.protection_barrier_pct,
+            "no_call_period_months": request.no_call_period_months,
+            "quoted_implied_vol": request.quoted_implied_vol,
+            "observation_frequency_months": observation_frequency_months,
+            "basket_size": len(underlyings),
+            "log_notional_credits": float(np.log1p(request.notional_credits)),
+            "requested_month_sin": float(np.sin(2 * np.pi * requested_at.month / 12)),
+            "requested_month_cos": float(np.cos(2 * np.pi * requested_at.month / 12)),
+            "requested_dayofweek": requested_at.dayofweek,
+            "realized_vol_min": realized_min,
+            "realized_vol_max": realized_max,
+            "realized_vol_mean": float(np.mean(realized_volumes)),
+            "realized_vol_std": sample_std(realized_volumes),
+            "structural_base_vol_min": structural_min,
+            "structural_base_vol_max": structural_max,
+            "structural_base_vol_mean": float(np.mean(structural_volumes)),
+            "structural_base_vol_std": sample_std(structural_volumes),
+            "realized_vol_range": realized_max - realized_min,
+            "structural_base_vol_range": structural_max - structural_min,
+            "realized_minus_structural_vol": float(np.mean(realized_volumes) - np.mean(structural_volumes)),
+        }
+
+        # Si el contrato pide una variable continua que la API no sabe construir, hay que
+        # fallar aqui: rellenarla con 0.0 en silencio daria una prediccion sin sentido.
+        unknown = [
+            column for column in self.feature_columns
+            if not column.startswith(DUMMY_PREFIXES) and column not in known
+        ]
+        if unknown:
+            raise FeatureConstructionError(
+                f"The contract requires features the API cannot build: {unknown}. "
+                "The API and notebooks/Preprocess_starwars.ipynb are out of sync."
+            )
+
         vector = dict.fromkeys(self.feature_columns, 0.0)
-        vector.update(
-            {
-                "autocall_barrier_pct": request.autocall_barrier_pct,
-                "protection_barrier_pct": request.protection_barrier_pct,
-                "no_call_period_months": request.no_call_period_months,
-                "quoted_implied_vol": request.quoted_implied_vol,
-                "notional_credits": request.notional_credits,
-                "observation_frequency_months": observation_frequency_months,
-                "basket_size": len(underlyings),
-                "log_notional_credits": float(np.log1p(request.notional_credits)),
-                "requested_year": requested_at.year,
-                "requested_month_sin": float(np.sin(2 * np.pi * requested_at.month / 12)),
-                "requested_month_cos": float(np.cos(2 * np.pi * requested_at.month / 12)),
-                "requested_dayofweek": requested_at.dayofweek,
-                "n_underlyings": len(underlyings),
-                "n_market_matches": len(underlyings),
-                "realized_vol_min": realized_min,
-                "realized_vol_max": realized_max,
-                "realized_vol_mean": float(np.mean(realized_volumes)),
-                "realized_vol_std": sample_std(realized_volumes),
-                "structural_base_vol_min": structural_min,
-                "structural_base_vol_max": structural_max,
-                "structural_base_vol_mean": float(np.mean(structural_volumes)),
-                "structural_base_vol_std": sample_std(structural_volumes),
-                "market_lag_days_max": max(market_lags),
-                "realized_vol_range": realized_max - realized_min,
-                "structural_base_vol_range": structural_max - structural_min,
-                "realized_minus_structural_vol": float(np.mean(realized_volumes) - np.mean(structural_volumes)),
-                "market_match_rate": 1.0,
-                f"product_type_{request.product_type}": 1.0,
-                f"basket_type_{request.basket_type}": 1.0,
-                f"counterparty_{request.counterparty}": 1.0,
-                f"trader_id_{request.trader_id}": 1.0,
-            }
-        )
+        vector.update(known)
+        vector[f"product_type_{request.product_type}"] = 1.0
+        vector[f"basket_type_{request.basket_type}"] = 1.0
+        vector[f"counterparty_{request.counterparty}"] = 1.0
+        vector[f"trader_id_{request.trader_id}"] = 1.0
         for underlying in underlyings:
             vector[f"has_underlying_{underlying}"] = 1.0
 
@@ -204,15 +253,49 @@ class PredictionService:
             raise FeatureConstructionError("Feature construction produced missing values")
         return features, max(market_lags)
 
+    def _ratio_to_months(self, model: CatBoostRegressor, features: pd.DataFrame, maturity: float) -> float:
+        """El modelo predice la fraccion del plazo; aqui se convierte en meses."""
+        ratio = float(np.clip(model.predict(features)[0], 0.0, self.ratio_cap))
+        return ratio * maturity
+
     def predict(self, request: PredictionRequest) -> PredictionResponse:
         features, market_lag_days_max = self.build_features(request)
-        prediction = float(self.model.predict(features)[0])
+        maturity = request.nominal_maturity_months
+
+        ratio = float(np.clip(self.model.predict(features)[0], 0.0, self.ratio_cap))
+        duration = ratio * maturity
+
+        low = high = None
+        if self.model_p10 is not None and self.model_p90 is not None:
+            band = [
+                self._ratio_to_months(self.model_p10, features, maturity),
+                self._ratio_to_months(self.model_p90, features, maturity),
+            ]
+            low, high = min(band), max(band)
+
+        warnings: list[str] = []
+        minimum, maximum = self.maturity_range
+        if not minimum <= maturity <= maximum:
+            warnings.append(
+                f"nominal_maturity_months={maturity:g} is outside the training range "
+                f"({minimum:g}-{maximum:g}); the estimate is an extrapolation."
+            )
+        if market_lag_days_max > STALE_MARKET_DAYS:
+            warnings.append(
+                f"The latest market data is {market_lag_days_max} days older than the RFQ date."
+            )
+
         return PredictionResponse(
-            predicted_avg_duration_months=prediction,
+            predicted_avg_duration_months=duration,
+            predicted_duration_ratio=ratio,
+            predicted_p10_months=low,
+            predicted_p90_months=high,
+            nominal_maturity_months=maturity,
             requested_date=request.requested_date,
-            model_name="catboost_primary",
+            model_name="catboost_duration_ratio",
             feature_count=len(self.feature_columns),
             market_lag_days_max=market_lag_days_max,
+            warnings=warnings,
         )
 
 
@@ -241,8 +324,9 @@ def health() -> dict[str, object]:
     return {
         "status": "ok",
         "build_tag": BUILD_TAG,
-        "model": "catboost_primary",
+        "model": "catboost_duration_ratio",
         "feature_count": len(service.feature_columns),
+        "uncertainty_bands": service.model_p10 is not None and service.model_p90 is not None,
     }
 
 
@@ -262,6 +346,7 @@ def metadata() -> dict[str, object]:
         "underlyings": values_for("has_underlying_"),
         "observation_frequencies": ["1M", "3M", "6M", "1Y"],
         "latest_market_date": latest_market_date.date().isoformat(),
+        "maturity_range_months": list(service.maturity_range),
     }
 
 
