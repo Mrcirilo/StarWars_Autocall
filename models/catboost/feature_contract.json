@@ -1,20 +1,25 @@
 {
   "target": "avg_duration_months",
+  "unit": "months",
+  "target_parametrization": "duration_ratio",
+  "maturity_column": "nominal_maturity_months",
+  "maturity_range_months": [
+    24.014454664914584,
+    119.9737187910644
+  ],
+  "ratio_cap": 1.2026401709401708,
   "feature_columns": [
     "autocall_barrier_pct",
     "protection_barrier_pct",
     "no_call_period_months",
     "quoted_implied_vol",
-    "notional_credits",
     "observation_frequency_months",
     "basket_size",
     "log_notional_credits",
-    "requested_year",
     "requested_month_sin",
     "requested_month_cos",
     "requested_dayofweek",
-    "n_underlyings",
-    "n_market_matches",
+    "nominal_maturity_months",
     "realized_vol_min",
     "realized_vol_max",
     "realized_vol_mean",
@@ -23,11 +28,9 @@
     "structural_base_vol_max",
     "structural_base_vol_mean",
     "structural_base_vol_std",
-    "market_lag_days_max",
     "realized_vol_range",
     "structural_base_vol_range",
     "realized_minus_structural_vol",
-    "market_match_rate",
     "has_underlying_BSKR",
     "has_underlying_CLNE",
     "has_underlying_CORL",
@@ -100,7 +103,9 @@
   ],
   "time_column": "requested_date",
   "holdout_start": "2024-01-01",
-  "operational_horizon_days": 7,
   "primary_model": "model.cbm",
-  "unit": "months"
+  "quantile_models": {
+    "p10": "model_p10.cbm",
+    "p90": "model_p90.cbm"
+  }
 }
